@@ -1,80 +1,115 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.7;
 
-pragma solidity >=0.4.22 <0.7.0;
-
+// import dependencies with github path
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/math/SafeMath.sol";
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 
-contract BocconiToken is IERC20{
-    
-    using SafeMath for uint256;
-    
-    //mutable state
-    mapping (address => uint256) private balances;
-    mapping (address => mapping (address => uint256)) private allowances;
-    uint256 private _totalSupply;
-    
-    //fixed state
-    string _name;
-    string _symbol;
-    uint256 _decimals;
-    
-    //Notification for transfers
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    
-    
-    constructor(string memory name, string memory symbol, uint256 decimals) public{
-        _name = name;
-        _symbol = symbol;
-        _decimals = decimals;
-        
-        //create initial token distribution
-        balances[msg.sender] = 1000;
-        _totalSupply = 1000;
+/**
+    NOTE: GitHub-Web URLs include the branch path '/blob/master' - this needs to be removed when importing files
+    ❌ https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol
+    ✅ https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol
+ */
+
+// This contract implements the ERC20 Interface
+contract BocconiToken is IERC20 {
+    // use SafeMath library for operations on unsigned integers
+    using SafeMath for uint256; // NOTE: "uint" is shorthand for "uint256"
+
+    // IMMUTABLE STATE
+    string public name;
+    string public symbol;
+    uint256 public constant decimals = 18;
+
+    // VARIABLE STATE
+    uint256 public override totalSupply; // NOTE: public variables can be called as functions `token.totalSupply()`
+
+    mapping(address => uint256) private balances; // NOTE: mappings are read `balances[address]`
+    mapping(address => mapping(address => uint256)) allownaces;
+
+    // PUBLIC STATE UPDATE FUNCTIONS
+
+    // called once when contract is created
+    constructor(string memory _name, string memory _symbol) {
+        name = _name;
+        symbol = _symbol;
+
+        //set initial token distribution
+        totalSupply = 1000;
+        balances[msg.sender] = totalSupply;
     }
-    
-    
-    function totalSupply() override external view returns (uint256){
-        return _totalSupply;
-    }
-    
-    function balanceOf(address account) override external view returns (uint256){
-        return balances[account];
-    }
-    
-    function transfer(address recipient, uint256 amount) override external returns (bool){
-        require(balances[msg.sender] >= amount, "Sender has not enougth Tokens");
-        
-        balances[msg.sender] = balances[msg.sender].sub(amount);
-        balances[recipient] = balances[recipient].add(amount);
-        
-        emit Transfer(msg.sender, recipient, amount);
-        return true;
-    }
-    
-    function allowance(address owner, address spender) override external view returns (uint256){
-        return allowances[owner][spender];
-    }
-    
-    function approve(address spender, uint256 amount) override external returns (bool){
-        require(balances[msg.sender] >= amount, "Sender has not enougth Tokens");
-        allowances[msg.sender][spender] = amount;
-        
-        return true;
-    }
-    
-    function transferFrom(address sender, address recipient, uint256 amount) override external returns (bool){
-        require(balances[sender] >= amount, "Sender has not enougth Tokens");
-        require(allowances[sender][msg.sender] >= amount, "Sender is not allowed to move this amount");
-        
-        balances[sender] = balances[sender].sub(amount);
-        balances[recipient] = balances[recipient].add(amount);
-        allowances[sender][msg.sender] = 0;
-        
-        emit Transfer(sender, recipient, amount);
+
+    // transfer tokens from msg.sender to reciever
+    function transfer(address reciever, uint256 amount)
+        public
+        override
+        returns (bool)
+    {
+        // call internal method
+        _transfer(msg.sender, reciever, amount);
         return true;
     }
 
+    // approve spender to transfer tokens from msg.sender
+    function approve(address spender, uint256 amount)
+        public
+        override
+        returns (bool)
+    {
+        allownaces[msg.sender][spender] = amount;
+        return true;
+    }
 
-    
+    // transfer approved tokens from "from" to "to"
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public override returns (bool) {
+        // check transfer amount is allowed
+        require(allownaces[from][msg.sender] > amount, "Allowance to low");
+
+        // call internal method
+        _transfer(from, to, amount);
+
+        // decrease allowance
+        allownaces[from][msg.sender] -= amount;
+
+        return true;
+    }
+
+    // PUBLIC STATE READ FUNCTIONS
+
+    // get the token balance of "owner"
+    function balanceOf(address owner) public view override returns (uint256) {
+        return balances[owner];
+    }
+
+    // get how many tokens an "owner" approved to be spent by "spender"
+    function allowance(address owner, address spender)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return allownaces[owner][spender];
+    }
+
+    // INTERNAL STATE UPDATE FUNCTIONS
+
+    // decrease "from" balance and increase "to" balance
+    function _transfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal returns (bool) {
+        // check "from" has enought tokens
+        require(balances[from] > amount, "Balance is to low");
+
+        // update balances
+        balances[from] = balances[from].sub(amount);
+        balances[to] = balances[to].add(amount);
+
+        return true;
+    }
 }
