@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.15;
 
 // import dependencies with github path
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 
 /**
     NOTE: GitHub-Web URLs include the branch path '/blob/master' - this needs to be removed when importing files
@@ -12,9 +11,7 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/m
  */
 
 // This contract implements the ERC20 Interface
-contract TokenTemplate is IERC20 {
-    // use SafeMath library for operations on unsigned integers
-    using SafeMath for uint256; // NOTE: "uint" is shorthand for "uint256"
+abstract contract TokenTemplate is IERC20 {
 
     // IMMUTABLE STATE
 

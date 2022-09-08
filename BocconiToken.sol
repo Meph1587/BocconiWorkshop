@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.15;
 
 // import dependencies with github path
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
 
 /**
     NOTE: GitHub-Web URLs include the branch path '/blob/master' - this needs to be removed when importing files
@@ -13,8 +12,6 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/m
 
 // This contract implements the ERC20 Interface
 contract BocconiToken is IERC20 {
-    // use SafeMath library for operations on unsigned integers
-    using SafeMath for uint256; // NOTE: "uint" is shorthand for "uint256"
 
     // IMMUTABLE STATE
     string public name;
@@ -107,8 +104,8 @@ contract BocconiToken is IERC20 {
         require(balances[from] > amount, "Balance is to low");
 
         // update balances
-        balances[from] = balances[from].sub(amount);
-        balances[to] = balances[to].add(amount);
+        balances[from] = balances[from] - amount;
+        balances[to] = balances[to] + amount;
 
         return true;
     }
